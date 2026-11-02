@@ -1,0 +1,25 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prática guiada · IA na Prática</title><link rel="stylesheet" href="css/style.css"></head><body>
+<main>
+<h1>Prática guiada · Comunicado interno</h1>
+<p>Vocês trabalham no RH da <b>Alvorada Tech</b> (empresa fictícia) e precisam avisar a mudança de horário do Encontro de Integração. <b>A IA só pode usar a ficha de fatos abaixo.</b></p>
+<h2>Ficha de fatos</h2><div class="card" style="padding:4px 12px"><table id="fatos"></table></div>
+<h2>As três rodadas <span class="mut">(3 min cada)</span></h2>
+<div class="card"><b>1. Escrever e rodar.</b> Escrevam um prompt com os 5 ingredientes e rodem na ferramenta. Colem apenas a ficha de fatos.</div>
+<div class="card"><b>2. Caçar e melhorar.</b> Leiam a resposta com o checklist. Marquem o que não está na ficha. Ajustem o prompt e rodem de novo.</div>
+<div class="card"><b>3. Revisar e conferir.</b> Peçam: “revise sua resposta, aponte o que você não tem certeza e liste o que não está na ficha de fatos”. Depois confiram linha por linha.</div>
+<h2>Checklist <span class="mut">(1 ponto por item, máx. 5)</span></h2>
+<div id="itens"></div>
+<p class="mut">O facilitador confere a dupla (prompt, comunicado e marcas na ficha) antes de validar os pontos.</p>
+<div class="card"><b>Desafio:</b> peçam uma segunda versão do comunicado, em tom mais descontraído, e comparem. O que mudou nos fatos?</div>
+<p class="mut"><b>Lembrete:</b> use somente os dados da ficha, que são fictícios. Não digite dados reais.</p>
+<button id="env" class="btn block">Enviar pontos</button>
+<p id="ok" class="mut" style="text-align:center"></p>
+</main>
+<script type="module">
+import { $, $$, header, salvarPontos, toast, esc } from './js/common.js';
+import { PRATICA_ITENS, FICHA_FATOS } from './js/data.js';
+const m = header('Prática guiada');
+$('#fatos').innerHTML = FICHA_FATOS.map(([a,b])=>`<tr><td style="text-align:left;font-weight:700;width:38%">${esc(a)}</td><td style="text-align:left">${esc(b)}</td></tr>`).join('');
+$('#itens').innerHTML = PRATICA_ITENS.map((t,i)=>`<label class="opcao"><input type="checkbox" data-i="${i}"><span><b>${i+1}.</b> ${esc(t)}</span></label>`).join('');
+$('#env').onclick=async()=>{ const n=$$('#itens input:checked').length; await salvarPontos(m.g,'pratica','d'+m.d,n); toast('Pontos enviados!'); $('#ok').textContent=`Enviado: ${n} de 5 pontos.`; };
+</script></body></html>

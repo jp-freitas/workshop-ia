@@ -1,0 +1,33 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Atividade 4 · IA na Prática</title><link rel="stylesheet" href="css/style.css"></head><body>
+<main>
+<h1>Semáforo dos dados · Rodada 2</h1>
+<p class="mut">Vocês querem pedir à IA que sugira uma resposta para a reclamação abaixo. <b>Reescrevam o texto de modo que ninguém consiga descobrir quem é a cliente</b>, mas preservando o problema relatado.</p>
+<div class="texto" id="orig"></div>
+<h2>Sua versão</h2>
+<textarea id="nova" placeholder="Escreva aqui a reclamação anonimizada…"></textarea>
+<button id="conf" class="btn block" style="margin-top:12px" disabled>Conferir</button>
+<div id="res" hidden></div>
+</main>
+<script type="module">
+import { $, header, salvarPontos, toast, esc } from './js/common.js';
+import { A4_RECLAMACAO, A4_IDS, A4_COMBO, A4_REF } from './js/data.js';
+const m = header('Atividade 4 · Rodada 2');
+$('#orig').textContent = A4_RECLAMACAO;
+$('#nova').oninput=()=>{ $('#conf').disabled = $('#nova').value.trim().length<30; };
+$('#conf').onclick=async()=>{
+  const txt=$('#nova').value;
+  const lista=A4_IDS.map(i=>({...i, ficou:i.re.test(txt)}));
+  const pts=lista.filter(i=>!i.ficou).length;
+  const combo=A4_COMBO.re.test(txt);
+  const ok=/cadeira/i.test(txt) && /(entrega|receb)/i.test(txt);
+  $('#conf').hidden=true; $('#nova').disabled=true;
+  await salvarPontos(m.g,'a4r2','g',pts); toast('Pontos enviados ao placar!');
+  $('#res').hidden=false;
+  $('#res').innerHTML=`<div class="card"><div class="score">${pts} / 6</div><p class="mut" style="text-align:center">identificadores retirados</p></div>
+  ${lista.map(i=>`<div class="sit ${i.ficou?'errado':'certo'}"><b>${i.ficou?'✘ Ainda aparece':'✔ Retirado'}:</b> ${esc(i.n)}<div class="why">${esc(i.why)}</div></div>`).join('')}
+  ${combo?`<div class="card" style="border-color:var(--yl)"><b>⚠ ${esc(A4_COMBO.msg)}</b></div>`:'<div class="card"><b>✔ Sem combinação identificadora.</b></div>'}
+  ${ok?'':'<div class="card"><b>Atenção:</b> a versão precisa preservar o problema (a cadeira pedida e não entregue).</div>'}
+  <div class="card"><b>Versão de referência</b><p>${esc(A4_REF)}</p></div>
+  <p class="mut">Esta rodada vale por grupo (máx. 6): se mais de uma pessoa enviar, vale o último envio.</p>`;
+};
+</script></body></html>

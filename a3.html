@@ -1,0 +1,50 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Atividade 3 · IA na Prática</title><link rel="stylesheet" href="css/style.css"></head><body>
+<main>
+<h1>Caça às alucinações</h1>
+<p class="mut">A analista Marina colou o texto-base numa ferramenta de IA e pediu um resumo para a diretoria. <b>Há exatamente 6 problemas</b>, e nem tudo o que está na resposta está errado. Toque nos trechos para marcá-los, escolha o tipo e como vocês verificariam.</p>
+<h2>1. Texto-base (o que a Marina colou)</h2><div class="texto" id="base"></div>
+<h2>2. Pedido da Marina</h2><div class="texto" id="ped"></div>
+<h2>3. Resposta da IA <span class="mut">(toque para marcar)</span></h2><div class="texto" id="resp"></div>
+<h2>4. Sua caça</h2><div id="achados"><p class="mut">Nenhum trecho marcado ainda.</p></div>
+<button id="conf" class="btn block" style="margin-top:14px" disabled>Conferir</button>
+<div id="res" hidden></div>
+</main>
+<script type="module">
+import { $, $$, header, salvarPontos, toast, esc } from './js/common.js';
+import { A3_BASE, A3_PEDIDO, A3_RESPOSTA, A3_TIPOS, A3_ERROS } from './js/data.js';
+const m = header('Atividade 3 · Caça às alucinações');
+$('#base').textContent = A3_BASE; $('#ped').textContent = A3_PEDIDO;
+const marc = {}; // idx -> {tipo, como}
+let travado = false;
+function drawResp(){
+  $('#resp').innerHTML = A3_RESPOSTA.map((s,i)=>{
+    if(s.e===undefined) return esc(s.t);
+    let c='ck'; if(marc[i]) c+=' on';
+    if(travado){ const certo = s.e>0 && marc[i] && A3_ERROS[s.e].aceita.includes(marc[i].tipo); if(s.e>0&&marc[i]&&certo)c='ck certo'; else if(s.e===0&&marc[i])c='ck errado'; else if(s.e>0&&marc[i]&&!certo)c='ck errado'; else if(s.e>0&&!marc[i])c='ck perdeu'; }
+    return `<span class="${c}" data-i="${i}">${esc(s.t)}</span>`; }).join('');
+  if(!travado) $$('#resp .ck').forEach(el=>el.onclick=()=>{ const i=el.dataset.i; if(marc[i]) delete marc[i]; else marc[i]={tipo:'',como:''}; drawResp(); drawAchados(); });
+}
+function drawAchados(){
+  const ks=Object.keys(marc);
+  if(!ks.length){ $('#achados').innerHTML='<p class="mut">Nenhum trecho marcado ainda.</p>'; $('#conf').disabled=true; return; }
+  $('#achados').innerHTML = ks.map(i=>`<div class="achado"><q>“${esc(A3_RESPOSTA[i].t)}”</q>
+    <select data-i="${i}" data-k="tipo" ${travado?'disabled':''}><option value="">Tipo do problema…</option>${A3_TIPOS.map(t=>`<option ${marc[i].tipo===t?'selected':''}>${esc(t)}</option>`).join('')}</select>
+    <input type="text" data-i="${i}" data-k="como" placeholder="Como eu verificaria?" value="${esc(marc[i].como)}" style="margin-top:8px" ${travado?'disabled':''}></div>`).join('');
+  $$('#achados [data-k]').forEach(el=>el.oninput=el.onchange=()=>{ marc[el.dataset.i][el.dataset.k]=el.value; $('#conf').disabled = travado || !Object.values(marc).every(x=>x.tipo); });
+  $('#conf').disabled = travado || !Object.values(marc).every(x=>x.tipo);
+}
+$('#conf').onclick=async()=>{
+  travado=true; $('#conf').hidden=true;
+  let pts=0; const certos=[];
+  A3_RESPOSTA.forEach((s,i)=>{ if(s.e>0 && marc[i] && A3_ERROS[s.e].aceita.includes(marc[i].tipo)){ pts++; certos.push(s.e); } });
+  const falsos = A3_RESPOSTA.filter((s,i)=>s.e===0 && marc[i]).length;
+  await salvarPontos(m.g,'a3','d'+m.d,pts); toast('Pontos enviados ao placar!');
+  $('#res').hidden=false;
+  $('#res').innerHTML = `<div class="card"><div class="score">${pts} / 6</div><p class="mut" style="text-align:center">pontos da sua dupla</p>${falsos?`<p>⚠ Você marcou ${falsos} trecho(s) que estava(m) correto(s).</p>`:''}</div>
+  <h2>Gabarito</h2>`+Object.entries(A3_ERROS).map(([k,e])=>{ const s=A3_RESPOSTA.find(x=>x.e==k); return `<div class="achado"><q>“${esc(s.t)}”</q><b>${esc(e.tipo)}</b><br><span class="mut">${esc(e.como)}</span></div>`; }).join('')+
+  `<p class="mut">Trechos corretos (não deviam ser marcados): a rede tem 12 lojas, faturou R$ 8,4 milhões em 2025, o ticket médio é de R$ 32,00 e 24 + 96 = 120 funcionários.</p>
+  <div class="card"><b>Para quem terminou cedo</b><p>Escreva uma frase que você acrescentaria ao pedido da Marina para evitar o erro mais grave.</p></div>`;
+  drawResp(); drawAchados(); window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+};
+drawResp(); drawAchados();
+</script></body></html>

@@ -1,0 +1,35 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Atividade 1 · IA na Prática</title><link rel="stylesheet" href="css/style.css"></head><body>
+<main>
+<h1>IA ou não IA?</h1>
+<p class="mut">Em dupla, decidam em qual coluna cada situação se encaixa. Toque no botão da coluna. Depois, confira.</p>
+<div id="leg" class="leg"></div>
+<div id="lista"></div>
+<button id="conf" class="btn block" disabled>Conferir</button>
+<div id="res" hidden>
+  <div class="card"><div class="score" id="pts"></div><p class="mut" style="text-align:center">pontos da sua dupla (máx. 8)</p></div>
+  <div class="card"><b>Desafio para quem terminou cedo</b><p id="des"></p></div>
+</div>
+</main>
+<script type="module">
+import { $, $$, header, salvarPontos, toast, esc } from './js/common.js';
+import { A1_COLUNAS, A1_CARTOES, A1_DESAFIO } from './js/data.js';
+const m = header('Atividade 1 · IA ou não IA?');
+$('#leg').innerHTML = A1_COLUNAS.map((c,i)=>`<div style="border-color:${['#888','#2563eb','#C2410C'][i]}"><b>${c.id} · ${esc(c.nome)}.</b> ${esc(c.desc)}</div>`).join('');
+const ordem = A1_CARTOES.map((c,i)=>i).sort((a,b)=>((a*7+3)%8)-((b*7+3)%8));
+const resp = {};
+const chave = 'ws:a1:'+m.g+':'+m.d; let travado = false;
+try { const s = JSON.parse(localStorage.getItem(chave)||'null'); if(s){ Object.assign(resp,s.resp); travado=s.travado; } } catch(e){}
+function draw(){
+  $('#lista').innerHTML = ordem.map((i,n)=>{ const c=A1_CARTOES[i];
+    let cls='sit', why='';
+    if(travado){ const ok = resp[i]===c.c; cls+= ok?' certo':' errado'; why=`<div class="why">${ok?'✔':'✘'} Correto: <b>${c.c}</b>. ${esc(c.why)}</div>`; }
+    return `<div class="${cls}"><div class="t"><b>${n+1}.</b> ${esc(c.t)}</div><div class="cols">${A1_COLUNAS.map(k=>`<button data-i="${i}" data-c="${k.id}" class="${resp[i]===k.id?'sel':''}" ${travado?'disabled':''}>${k.id}</button>`).join('')}</div>${why}</div>`; }).join('');
+  $$('#lista button').forEach(b=>b.onclick=()=>{ resp[b.dataset.i]=b.dataset.c; salvar(); draw(); });
+  $('#conf').disabled = travado || Object.keys(resp).length<A1_CARTOES.length;
+  $('#conf').hidden = travado;
+  if(travado){ const p=A1_CARTOES.filter((c,i)=>resp[i]===c.c).length; $('#res').hidden=false; $('#pts').textContent=p+' / 8'; $('#des').textContent=A1_DESAFIO; }
+}
+function salvar(){ try{ localStorage.setItem(chave, JSON.stringify({resp,travado})); }catch(e){} }
+$('#conf').onclick=async()=>{ travado=true; salvar(); const p=A1_CARTOES.filter((c,i)=>resp[i]===c.c).length; await salvarPontos(m.g,'a1','d'+m.d,p); toast('Pontos enviados ao placar!'); draw(); window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}); };
+draw();
+</script></body></html>

@@ -1,0 +1,58 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Painel · IA na Prática</title><link rel="stylesheet" href="css/style.css"></head><body>
+<main>
+<div id="gate" class="card"><h2 style="margin-top:0">Painel do facilitador</h2><label>Código</label><input id="cod" type="text" autocomplete="off"><button id="ent" class="btn block" style="margin-top:10px">Entrar</button><p id="err" class="mut"></p></div>
+<div id="app" hidden>
+  <h1>Painel do facilitador</h1>
+  <div class="card"><b>Sessão:</b> <code id="ses"></code> · <span id="modo"></span>
+    <label>Número de grupos</label><div class="row"><input id="ng" type="number" min="1" max="20"><button id="sng" class="btn sec">Salvar</button></div>
+  </div>
+  <h2>Votação</h2>
+  <div class="card"><div class="row"><button id="vab" class="btn ok">Abrir votação</button><button id="vfe" class="btn rd">Fechar votação</button></div>
+    <p id="vst" class="mut"></p><button id="bonus" class="btn sec block">Aplicar bônus (3 pts) ao grupo mais votado</button><p id="bst" class="mut"></p></div>
+  <h2>Termômetro</h2>
+  <div class="card"><div class="row"><button class="btn sec" data-f="inicio">Fase: início</button><button class="btn sec" data-f="fim">Fase: fim</button></div>
+    <div class="grid g3" id="qs" style="margin-top:10px"></div><button id="qx" class="btn ghost block" style="margin-top:8px">Fechar afirmação</button><p id="tst" class="mut"></p></div>
+  <h2>Pontos do facilitador</h2>
+  <div class="card"><p class="mut">A2 (0–6), A4 rodada 1 (0–12) e pitch (4 critérios, 0–2 cada). O resto vem das duplas.</p><div style="overflow-x:auto"><table id="pts"></table></div></div>
+  <h2>Fichas de projeto</h2><div id="fichas"></div>
+  <h2>Zona de risco</h2>
+  <div class="card"><button id="reset" class="btn rd block">Apagar todos os dados desta sessão</button></div>
+  <p style="text-align:center"><a href="telao.html">Abrir telão</a></p>
+</div>
+</main>
+<script type="module">
+import { $, $$, header, esc, numGrupos, toast, MODO, SESSAO, AFIRMACOES, totaisGrupo } from './js/common.js';
+import { dbSet, dbOn, dbRemove, dbUpdate } from './js/db.js';
+import { CODIGO_PAINEL } from './js/config.js';
+header('Painel', { precisaIdentificar:false });
+const entrar=()=>{ $('#gate').hidden=true; $('#app').hidden=false; iniciar(); };
+if(sessionStorage.getItem('ws:painel')==='1') entrar();
+$('#ent').onclick=()=>{ if($('#cod').value.trim()===CODIGO_PAINEL){ sessionStorage.setItem('ws:painel','1'); entrar(); } else $('#err').textContent='Código incorreto.'; };
+function iniciar(){
+  $('#ses').textContent=SESSAO; $('#modo').textContent=MODO==='firebase'?'Firebase (ao vivo)':'Modo local (só este aparelho)';
+  let n=10, sc={}, votos={}, est={}, vot=false;
+  numGrupos(v=>{ n=v; $('#ng').value=v; tabela(); });
+  $('#sng').onclick=()=>{ dbSet('config/grupos', Math.max(1,Math.min(20,+$('#ng').value||10))); toast('Salvo'); };
+  dbOn('estado/votacao',v=>{ vot=!!v; $('#vst').textContent='Votação: '+(vot?'ABERTA':'fechada'); });
+  $('#vab').onclick=()=>dbSet('estado/votacao',true); $('#vfe').onclick=()=>dbSet('estado/votacao',false);
+  dbOn('votos',v=>{ votos=v||{}; const c={}; Object.values(votos).forEach(x=>c[x.para]=(c[x.para]||0)+1); window._c=c; $('#vst').textContent='Votação: '+(vot?'ABERTA':'fechada')+' · '+Object.keys(votos).length+' votos'; });
+  $('#bonus').onclick=async()=>{ const c=window._c||{}; const mx=Math.max(0,...Object.values(c)); if(!mx){ $('#bst').textContent='Sem votos.'; return; }
+    const venc=Object.keys(c).filter(g=>c[g]===mx); for(let g=1;g<=n;g++) await dbSet(`scores/${g}/bonus/fac`, venc.includes(String(g))?3:0);
+    $('#bst').textContent='Bônus aplicado ao(s) grupo(s): '+venc.join(', ')+' ('+mx+' votos).'; };
+  dbOn('estado/termometro',v=>{ est=v||{}; $('#tst').textContent=est.q?`Aberta: ${est.fase==='fim'?'fim':'início'}, afirmação ${est.q}`:'Nenhuma afirmação aberta.'; $$('[data-f]').forEach(b=>b.style.outline=(est.fase||'inicio')===b.dataset.f?'4px solid var(--or)':'none'); });
+  $$('[data-f]').forEach(b=>b.onclick=()=>dbSet('estado/termometro',{fase:b.dataset.f,q:est.q||0}));
+  $('#qs').innerHTML=AFIRMACOES.map((a,i)=>`<button class="btn ghost" data-q="${i+1}" title="${esc(a)}">${i+1}</button>`).join('');
+  $$('[data-q]').forEach(b=>b.onclick=()=>dbSet('estado/termometro',{fase:est.fase||'inicio',q:+b.dataset.q}));
+  $('#qx').onclick=()=>dbSet('estado/termometro',{fase:est.fase||'inicio',q:0});
+  dbOn('scores',v=>{ sc=v||{}; });
+  function tabela(){ $('#pts').innerHTML=`<tr><th>Grupo</th><th>A2</th><th>A4 r1</th><th>Prompt</th><th>Dados</th><th>Verif.</th><th>Resp.</th><th>Pitch</th><th></th></tr>`+Array.from({length:n},(_,i)=>i+1).map(g=>`<tr data-g="${g}"><td><b>${g}</b></td><td><input type="number" min="0" max="6" data-k="a2"></td><td><input type="number" min="0" max="12" data-k="a4r1"></td>${[0,1,2,3].map(r=>`<td><input type="number" min="0" max="2" data-r="${r}"></td>`).join('')}<td class="pt">–</td><td><button class="btn sec" style="padding:6px 12px;min-height:36px">Salvar</button></td></tr>`).join('');
+    $$('#pts tr[data-g]').forEach(tr=>{ const g=tr.dataset.g; dbOn(`scores/${g}`,s=>{ s=s||{}; const v=(o)=>o&&o.fac!==undefined?o.fac:''; tr.querySelector('[data-k=a2]').value=v(s.a2); tr.querySelector('[data-k=a4r1]').value=v(s.a4r1); tr.querySelector('.pt').textContent=v(s.pitch)||'–'; });
+      dbOn(`rubrica/${g}`,r=>{ [0,1,2,3].forEach(i=>tr.querySelector(`[data-r="${i}"]`).value=r&&r[i]!==undefined?r[i]:''); });
+      tr.querySelector('button').onclick=async()=>{ const a2=tr.querySelector('[data-k=a2]').value, a4=tr.querySelector('[data-k=a4r1]').value; const rb=[0,1,2,3].map(i=>tr.querySelector(`[data-r="${i}"]`).value);
+        if(a2!=='') await dbSet(`scores/${g}/a2/fac`,Math.min(6,+a2)); if(a4!=='') await dbSet(`scores/${g}/a4r1/fac`,Math.min(12,+a4));
+        if(rb.every(x=>x!=='')){ await dbSet(`rubrica/${g}`,rb.map(x=>Math.min(2,+x))); await dbSet(`scores/${g}/pitch/fac`,rb.reduce((s,x)=>s+Math.min(2,+x),0)); }
+        toast('Grupo '+g+' salvo'); }; }); }
+  dbOn('projetos',p=>{ p=p||{}; $('#fichas').innerHTML=Object.keys(p).sort((a,b)=>a-b).map(g=>{ const f=p[g]; return `<details class="card"><summary><b>Grupo ${g}</b> · Caso ${esc(f.caso||'?')}</summary>${[['tarefa','Tarefa'],['prompt','Prompt final'],['resultado','Resultado'],['dados','Dados e semáforo'],['verificacao','Verificação'],['responsabilidade','Responsabilidade humana']].map(([k,l])=>`<p><b>${l}:</b><br>${esc(f[k]||'—').replace(/\n/g,'<br>')}</p>`).join('')}</details>`; }).join('')||'<p class="mut">Nenhuma ficha ainda.</p>'; });
+  $('#reset').onclick=async()=>{ if(confirm('Apagar TODOS os dados da sessão '+SESSAO+'?')){ await dbRemove(''); toast('Sessão apagada'); } };
+}
+</script></body></html>

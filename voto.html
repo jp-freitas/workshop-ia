@@ -1,0 +1,25 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Votação · IA na Prática</title><link rel="stylesheet" href="css/style.css"></head><body>
+<main>
+<h1>Votação · Uso responsável de IA</h1>
+<p>Qual grupo mais mostrou <b>uso responsável de IA</b> (prompt claro, dados protegidos, verificação e responsabilidade humana)?</p>
+<p><b>Não vote no seu próprio grupo.</b></p>
+<div id="aviso" class="card" hidden>A votação ainda não está aberta. Aguarde o facilitador.</div>
+<div id="vg" class="vgrid"></div>
+<button id="env" class="btn block" style="margin-top:16px" disabled>Confirmar voto</button>
+<p id="ok" class="mut" style="text-align:center"></p>
+</main>
+<script type="module">
+import { $, $$, header, deviceId, numGrupos, toast } from './js/common.js';
+import { dbSet, dbOn } from './js/db.js';
+const m = header('Votação');
+const dev=deviceId(); let escolha=0, aberta=false, ja=null, n=10;
+function draw(){
+  $('#aviso').hidden=aberta; $('#vg').innerHTML=Array.from({length:n},(_,i)=>`<button data-g="${i+1}" ${(i+1===m.g||!aberta||ja)?'disabled':''} class="${(ja||escolha)===i+1?'sel':''}">${i+1}</button>`).join('');
+  $$('#vg button').forEach(b=>b.onclick=()=>{ escolha=+b.dataset.g; draw(); });
+  $('#env').disabled=!escolha||!aberta||!!ja; $('#env').hidden=!!ja; $('#ok').textContent=ja?`Voto registrado no grupo ${ja}. Obrigado!`:'';
+}
+numGrupos(v=>{ n=v; draw(); });
+dbOn('estado/votacao', v=>{ aberta=!!v; draw(); });
+dbOn('votos/'+dev, v=>{ ja = v ? v.para : null; draw(); });
+$('#env').onclick=async()=>{ await dbSet('votos/'+dev,{para:escolha,de:m.g}); toast('Voto enviado!'); };
+</script></body></html>

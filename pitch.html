@@ -1,0 +1,20 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pitch · IA na Prática</title><link rel="stylesheet" href="css/style.css"></head><body>
+<main>
+<h1 style="text-align:center">Pitch de 30 segundos</h1>
+<div id="t" class="timer">0:30</div>
+<div class="row"><button id="go" class="btn block">Começar</button><button id="rs" class="btn ghost block">Zerar</button></div>
+<div class="card" style="margin-top:20px"><b>Quatro frases (cerca de 7 segundos cada)</b>
+<p>1. <b>Antes e depois:</b> como a tarefa era e como ficou.<br>2. <b>Uma frase do prompt.</b><br>3. <b>Um risco</b> que identificamos.<br>4. <b>Uma forma de verificar.</b></p></div>
+<p class="mut" style="text-align:center">Avisa aos 5 segundos finais. Em celular silencioso, a tela pisca.</p>
+</main>
+<script type="module">
+import { $, header } from './js/common.js';
+header('Cronômetro do pitch', { precisaIdentificar:false });
+let left=30, iv=null;
+function draw(){ const t=$('#t'); t.textContent=`0:${String(left).padStart(2,'0')}`; t.className='timer'+(left===0?' fim':left<=5?' alerta':''); }
+function beep(f,d){ try{ const a=new (window.AudioContext||window.webkitAudioContext)(); const o=a.createOscillator(); o.frequency.value=f; o.connect(a.destination); o.start(); setTimeout(()=>{o.stop();a.close();},d); }catch(e){} }
+$('#go').onclick=()=>{ if(iv){ clearInterval(iv); iv=null; $('#go').textContent='Continuar'; return; } $('#go').textContent='Pausar';
+  iv=setInterval(()=>{ left--; if(left===5){ beep(660,150); navigator.vibrate&&navigator.vibrate(120);} if(left<=0){ left=0; clearInterval(iv); iv=null; beep(440,600); navigator.vibrate&&navigator.vibrate([200,100,200]); $('#go').textContent='Começar'; } draw(); },1000); };
+$('#rs').onclick=()=>{ clearInterval(iv); iv=null; left=30; $('#go').textContent='Começar'; draw(); };
+draw();
+</script></body></html>

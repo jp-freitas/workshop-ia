@@ -1,0 +1,35 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Início · IA na Prática</title><link rel="stylesheet" href="css/style.css"></head><body>
+<main>
+<h1>IA na Prática</h1>
+<div id="ident" class="card">
+  <h2 style="margin-top:0">Quem é você?</h2>
+  <p class="mut">Escolha o número do seu grupo e da sua dupla (está no seu envelope ou na mesa).</p>
+  <label>Grupo</label><div id="gg" class="vgrid"></div>
+  <label>Dupla</label><div class="vgrid" style="grid-template-columns:1fr 1fr"><button data-d="1">Dupla 1</button><button data-d="2">Dupla 2</button></div>
+  <p id="ok" class="mut"></p>
+</div>
+<div class="menu" id="menu">
+  <a href="a1.html"><div class="card"><span class="n">🧩</span><div><b>Atividade 1 · IA ou não IA?</b><span class="mut">Classifique 8 situações (dupla)</span></div></div></a>
+  <a href="a3.html"><div class="card"><span class="n">🔎</span><div><b>Atividade 3 · Caça às alucinações</b><span class="mut">Ache os 6 problemas (dupla)</span></div></div></a>
+  <a href="a4.html"><div class="card"><span class="n">🚦</span><div><b>Atividade 4 · Rodada 2</b><span class="mut">Anonimize a reclamação (grupo)</span></div></div></a>
+  <a href="pratica.html"><div class="card"><span class="n">✅</span><div><b>Prática guiada</b><span class="mut">Ficha de fatos e checklist (dupla)</span></div></div></a>
+  <a href="projeto.html"><div class="card"><span class="n">📋</span><div><b>Mini projeto · Ficha</b><span class="mut">Plano de uso responsável (grupo)</span></div></div></a>
+  <a href="pitch.html"><div class="card"><span class="n">⏱️</span><div><b>Cronômetro do pitch</b><span class="mut">30 segundos</span></div></div></a>
+  <a href="termometro.html"><div class="card"><span class="n">🌡️</span><div><b>Termômetro</b><span class="mut">Verde, amarelo ou vermelho</span></div></div></a>
+  <a href="voto.html"><div class="card"><span class="n">🗳️</span><div><b>Votação</b><span class="mut">Grupo que mostrou uso mais responsável</span></div></div></a>
+</div>
+<p class="mut" style="text-align:center;margin-top:24px"><a href="telao.html">Telão</a> · <a href="painel.html">Painel do facilitador</a> · <a href="qr.html">QR codes</a></p>
+</main>
+<script type="module">
+import { $, $$, me, setMe, numGrupos, header } from './js/common.js';
+const params = new URLSearchParams(location.search);
+header('IA na Prática', { precisaIdentificar: false });
+let sel = me() || { g: 0, d: 0 };
+function draw(){ $$('#gg button').forEach(b=>b.classList.toggle('sel', +b.dataset.g===sel.g)); $$('[data-d]').forEach(b=>b.classList.toggle('sel', +b.dataset.d===sel.d));
+  $('#ok').textContent = sel.g&&sel.d ? `Você está no Grupo ${sel.g}, Dupla ${sel.d}.` : ''; document.querySelector('.topo .quem').textContent = sel.g&&sel.d ? `Grupo ${sel.g} · Dupla ${sel.d}` : ''; }
+numGrupos(n => { $('#gg').innerHTML = Array.from({length:n},(_, i)=>`<button data-g="${i+1}">${i+1}</button>`).join(''); draw();
+  $$('#gg button').forEach(b=>b.onclick=()=>{ sel.g=+b.dataset.g; save(); }); });
+$$('[data-d]').forEach(b=>b.onclick=()=>{ sel.d=+b.dataset.d; save(); });
+function save(){ draw(); if(sel.g&&sel.d){ setMe(sel.g, sel.d); const v=params.get('volta'); if(v) location.href=v; } }
+draw();
+</script></body></html>

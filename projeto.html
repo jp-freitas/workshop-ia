@@ -1,0 +1,30 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mini projeto · IA na Prática</title><link rel="stylesheet" href="css/style.css"></head><body>
+<main>
+<h1>Mini projeto · Ficha de projeto</h1>
+<p class="mut">Uma pessoa por grupo preenche (o Redator). Os campos são salvos sozinhos e aparecem no painel do facilitador.</p>
+<div class="card"><b>Papéis do grupo</b>
+  <div class="grid g2" style="margin-top:8px" id="papeis"></div></div>
+<label>Caso nº</label><select id="caso"><option value="">Escolha…</option>
+<option>1 · Atendimento: Lar Brilhante</option><option>2 · RH: Rápido Sul Logística</option><option>3 · Marketing: Padaria Pão &amp; Prosa</option><option>4 · Financeiro: Contábil Prisma</option><option>5 · Treinamento: Escola Técnica Futuro</option><option>6 · Saúde: Clínica Vida Plena</option></select>
+<div id="campos"></div>
+<div class="card"><b>Pitch de 30 segundos (4 frases)</b><p class="mut">1. Antes e depois · 2. Uma frase do prompt · 3. Um risco que identificamos · 4. Uma forma de verificar.</p><a class="btn sec block" href="pitch.html">Abrir cronômetro do pitch</a></div>
+<p id="st" class="mut" style="text-align:center">Salvo automaticamente.</p>
+</main>
+<script type="module">
+import { $, $$, header, esc, toast } from './js/common.js';
+import { dbSet, dbOn } from './js/db.js';
+import { PROJETO_CAMPOS, PAPEIS } from './js/data.js';
+const m = header('Mini projeto');
+const base = `projetos/${m.g}`;
+$('#papeis').innerHTML = PAPEIS.map((p,i)=>`<div><label style="margin:0;font-size:14px">${p}</label><input type="text" data-p="${i}" placeholder="Nome"></div>`).join('');
+$('#campos').innerHTML = PROJETO_CAMPOS.map(([k,l,r])=>`<label>${esc(l)}</label><textarea data-k="${k}" style="min-height:${r*28}px"></textarea>`).join('');
+let first = true, t;
+dbOn(base, v => { if(!first) return; first=false; v=v||{};
+  $$('#campos [data-k]').forEach(e=>e.value=v[e.dataset.k]||'');
+  $$('#papeis [data-p]').forEach(e=>e.value=(v.papeis||{})[e.dataset.p]||''); $('#caso').value=v.caso||''; });
+function salvar(){ $('#st').textContent='Salvando…'; clearTimeout(t); t=setTimeout(async()=>{
+  const o={caso:$('#caso').value, papeis:Object.fromEntries($$('#papeis [data-p]').map(e=>[e.dataset.p,e.value]))};
+  $$('#campos [data-k]').forEach(e=>o[e.dataset.k]=e.value); o.em=Date.now();
+  await dbSet(base,o); $('#st').textContent='Salvo.'; },600); }
+$$('textarea,input,select').forEach(e=>e.addEventListener('input',salvar)); $('#caso').onchange=salvar;
+</script></body></html>

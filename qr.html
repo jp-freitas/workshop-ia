@@ -1,0 +1,18 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QR codes · IA na Prática</title><link rel="stylesheet" href="css/style.css"></head><body>
+<style>@media print{.topo,.aviso,.noprint{display:none!important}.q{page-break-inside:avoid}}.q{display:flex;gap:20px;align-items:center;margin:14px 0;padding:14px;border:2px solid var(--line);border-radius:14px}.q .im{width:200px;height:200px;flex:none}.q small{word-break:break-all;color:var(--mut)}</style>
+<main>
+<h1>QR codes</h1>
+<div class="noprint card"><label>Endereço base do site (onde está publicado)</label><input id="base" type="text"><p class="mut">Ex.: https://seu-usuario.github.io/workshop-ia/ — por padrão usa o endereço desta página. Depois imprima ou projete.</p><label>Código da sessão (opcional)</label><input id="ses" type="text" placeholder="workshop"></div>
+<div id="lista"></div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script type="module">
+import { $, header, esc } from './js/common.js';
+header('QR codes', { precisaIdentificar:false });
+const itens=[['index.html','Entrada (escolher grupo e dupla)'],['a1.html','Atividade 1 · IA ou não IA?'],['a3.html','Atividade 3 · Caça às alucinações'],['a4.html','Atividade 4 · Rodada 2'],['pratica.html','Prática guiada'],['projeto.html','Mini projeto · Ficha'],['pitch.html','Cronômetro do pitch'],['termometro.html','Termômetro'],['voto.html','Votação'],['telao.html','Telão (para o facilitador)']];
+$('#base').value=location.href.replace(/[^/]*$/,'').replace(/\?.*$/,'');
+function draw(){ let b=$('#base').value.trim(); if(!b.endsWith('/')) b+='/'; const s=$('#ses').value.trim();
+  $('#lista').innerHTML=itens.map(([f,t],i)=>`<div class="q"><div class="im" id="q${i}"></div><div><h2 style="margin:0">${esc(t)}</h2><small>${esc(b+f+(s?'?s='+encodeURIComponent(s):''))}</small></div></div>`).join('');
+  itens.forEach(([f],i)=>new QRCode(document.getElementById('q'+i),{text:b+f+(s?'?s='+encodeURIComponent(s):''),width:200,height:200,correctLevel:QRCode.CorrectLevel.M})); }
+$('#base').oninput=$('#ses').oninput=draw; draw();
+</script></body></html>

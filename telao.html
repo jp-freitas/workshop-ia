@@ -1,0 +1,27 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Telão · IA na Prática</title><link rel="stylesheet" href="css/style.css"></head><body class="telao">
+<main>
+<div class="tabs"><button data-t="placar" class="on">Placar</button><button data-t="voto">Votação</button><button data-t="termo">Termômetro</button></div>
+<div id="v-placar"></div><div id="v-voto" hidden></div><div id="v-termo" hidden></div>
+</main>
+<script type="module">
+import { $, $$, header, numGrupos, totaisGrupo, PARTES, esc, AFIRMACOES } from './js/common.js';
+import { dbOn } from './js/db.js';
+header('Telão', { precisaIdentificar:false });
+let n=10, sc={}, votos={}, termo={}, est={};
+const draw={};
+function rank(){ const t={}; for(let g=1;g<=n;g++) t[g]=totaisGrupo(sc[g]); const ord=Object.keys(t).sort((a,b)=>t[b].total-t[a].total||a-b); return {t,ord}; }
+draw.placar=()=>{ const {t,ord}=rank(); const topo=t[ord[0]]?.total||0;
+  $('#v-placar').innerHTML=`<table><tr><th>Grupo</th>${PARTES.map(p=>`<th>${p.nome}<br>(máx. ${p.max})</th>`).join('')}<th>Total</th></tr>
+  ${ord.map(g=>`<tr class="${t[g].total===topo&&topo>0?'top1':''}"><td><b>Grupo ${g}</b></td>${PARTES.map(p=>`<td>${t[g][p.id]||0}</td>`).join('')}<td class="tot">${t[g].total}</td></tr>`).join('')}</table>`; };
+draw.voto=()=>{ const c={}; let tot=0; Object.values(votos).forEach(v=>{ c[v.para]=(c[v.para]||0)+1; tot++; });
+  const mx=Math.max(1,...Object.values(c));
+  $('#v-voto').innerHTML=`<h2>Votos recebidos: ${tot}</h2>`+Array.from({length:n},(_,i)=>i+1).map(g=>`<div class="vb"><div class="nm">Grupo ${g}</div><div class="tr"><i style="width:${(c[g]||0)/mx*100}%"></i></div><div class="qt">${c[g]||0}</div></div>`).join(''); };
+draw.termo=()=>{ const f=(est&&est.fase)||'inicio';
+  let html=''; for(let q=1;q<=6;q++){ ['inicio','fim'].forEach(fase=>{ const r=(termo[fase]||{})[q]; if(!r) return; const v=Object.values(r); const a={v:0,a:0,r:0}; v.forEach(x=>a[x]++); const T=v.length||1;
+    html+=`<div class="card"><b>${fase==='fim'?'FIM':'INÍCIO'} · ${q}. ${esc(AFIRMACOES[q-1])}</b><div class="bar"><div style="width:${a.v/T*100}%;background:var(--ok)">${a.v||''}</div><div style="width:${a.a/T*100}%;background:var(--yl)">${a.a||''}</div><div style="width:${a.r/T*100}%;background:var(--rd)">${a.r||''}</div></div><span class="mut">${v.length} respostas</span></div>`; }); }
+  $('#v-termo').innerHTML=(est&&est.q?`<p class="mut">Aberta agora: ${f==='fim'?'final':'início'}, afirmação ${est.q}</p>`:'')+(html||'<p class="mut">Sem respostas ainda.</p>'); };
+function all(){ Object.values(draw).forEach(f=>f()); }
+numGrupos(v=>{ n=v; all(); }); dbOn('scores',v=>{ sc=v||{}; all(); }); dbOn('votos',v=>{ votos=v||{}; all(); }); dbOn('termometro',v=>{ termo=v||{}; all(); }); dbOn('estado/termometro',v=>{ est=v; all(); });
+$$('.tabs button').forEach(b=>b.onclick=()=>{ $$('.tabs button').forEach(x=>x.classList.toggle('on',x===b)); ['placar','voto','termo'].forEach(k=>$('#v-'+k).hidden=k!==b.dataset.t); });
+document.body.classList.add('telao');
+</script></body></html>
