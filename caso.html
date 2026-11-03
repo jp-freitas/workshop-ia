@@ -1,0 +1,32 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Caso · IA na Prática</title><link rel="stylesheet" href="css/style.css"></head><body>
+<main>
+<h1 id="h"></h1>
+<p class="mut" id="sub"></p>
+<div class="card" style="border-color:var(--or)"><b>Missão</b><p id="mis" style="margin:4px 0 0"></p></div>
+<div id="caso"></div>
+<h2>Papéis do grupo</h2>
+<p class="mut">Combinem quem faz o quê. Em grupo de 3, o guardião dos dados também verifica.</p>
+<div id="pap"></div>
+<h2>Ordem do pitch</h2>
+<div class="card" id="ord"><p class="mut">A ordem será sorteada pelo facilitador.</p></div>
+<a class="btn block" href="projeto.html">Abrir a ficha de projeto</a>
+</main>
+<script type="module">
+import { $, header, esc } from './js/common.js';
+import { dbOn } from './js/db.js';
+import { CASOS, casoDoGrupo, PAPEIS_TEXTO, MISSAO } from './js/data2.js';
+const m = header('Caso do mini projeto');
+const c = CASOS[casoDoGrupo(m.g)-1];
+$('#h').textContent = `Caso ${c.n}. ${c.titulo}`;
+$('#sub').textContent = `Grupo ${m.g}. Todos os dados deste caso são fictícios.`;
+$('#mis').textContent = MISSAO;
+let h = `<div class="card"><b>Situação</b><p style="margin:4px 0 0">${esc(c.situacao)}</p></div>`;
+(c.blocos||[]).forEach(([t,x])=>{ h += `<div class="card"><b>${esc(t)}</b><p style="margin:4px 0 0">${esc(x)}</p></div>`; });
+if (c.lista) h += `<div class="card"><b>${esc(c.lista[0])}</b><ol style="padding-left:22px;margin:6px 0 0">${c.lista[1].map(x=>`<li style="margin:6px 0">${esc(x)}</li>`).join('')}</ol></div>`;
+if (c.tabela) h += `<div class="card"><b>${esc(c.tabela[0])}</b><table style="margin-top:6px">${c.tabela[1].map(([a,b])=>`<tr><td>${esc(a)}</td><td style="text-align:right"><b>${esc(b)}</b></td></tr>`).join('')}</table></div>`;
+h += `<div class="card"><b>Desafio</b><p style="margin:4px 0 0">${esc(c.desafio)}</p></div><div class="card" style="border-color:var(--yl)"><b>Riscos para discutir</b><p style="margin:4px 0 0">${esc(c.riscos)}</p></div>`;
+$('#caso').innerHTML = h;
+$('#pap').innerHTML = PAPEIS_TEXTO.map(([a,b])=>`<div class="card"><b>${esc(a)}</b><p style="margin:4px 0 0">${esc(b)}</p></div>`).join('');
+dbOn('estado/ordem', o => { if(!Array.isArray(o)||!o.length) return; const k = o.map(Number).indexOf(m.g)+1;
+  $('#ord').innerHTML = k ? `<div class="score">${k}º</div><p style="text-align:center;margin:0">O Grupo ${m.g} apresenta em ${k}º lugar (de ${o.length}).</p>` : '<p class="mut">Seu grupo não está na ordem sorteada. Fale com o facilitador.</p>'; });
+</script></body></html>

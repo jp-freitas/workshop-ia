@@ -1,0 +1,20 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Glossário · IA na Prática</title><link rel="stylesheet" href="css/style.css"></head><body>
+<main>
+<h1>Glossário e referências</h1>
+<input id="q" type="text" placeholder="Buscar um termo…" autocomplete="off">
+<div id="gl"></div>
+<h2>Onde verificar</h2><div id="ref"></div>
+<h2>Receita do prompt (lembrete)</h2>
+<div class="card"><b>Papel · Contexto · Tarefa · Formato · Limites.</b><p>Antes de colar: há dado pessoal ou sigiloso? Depois de receber: confira fatos, contas e fontes.</p><p><b>A responsabilidade é sempre humana.</b></p><a class="btn sec block" href="receita.html">Abrir a receita completa</a></div>
+</main>
+<script type="module">
+import { $, header, esc } from './js/common.js';
+import { GLOSSARIO, REFERENCIAS } from './js/data2.js';
+header('Glossário', { precisaIdentificar:false });
+const norm=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+function draw(){ const f=norm($('#q').value.trim());
+  const l=GLOSSARIO.filter(([t,d])=>!f||norm(t+' '+d).includes(f));
+  $('#gl').innerHTML=l.length?l.map(([t,d])=>`<div class="card"><b>${esc(t)}</b><p style="margin:4px 0 0">${esc(d)}</p></div>`).join(''):'<p class="mut">Nenhum termo encontrado.</p>'; }
+$('#q').oninput=draw; draw();
+$('#ref').innerHTML=REFERENCIAS.map(([t,d])=>`<div class="card"><b>${esc(t)}</b><p style="margin:4px 0 0">${esc(d)}</p></div>`).join('');
+</script></body></html>

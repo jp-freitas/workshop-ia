@@ -1,0 +1,22 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mini-exercício · IA na Prática</title><link rel="stylesheet" href="css/style.css"></head><body>
+<main>
+<h1>Arrume o prompt</h1>
+<p class="mut">Duplas, 2 minutos. Sem ferramenta de IA: só escrevam o prompt aqui.</p>
+<div class="card"><b>Prompt fraco</b><p id="fraco" style="margin:4px 0 0"></p></div>
+<p>Você vai colar a ata abaixo (fictícia) na ferramenta. Reescrevam o prompt usando os <b>5 ingredientes</b>.</p>
+<div class="card" id="ata"></div>
+<label>Seu prompt reescrito</label><textarea id="p" style="min-height:190px"></textarea>
+<p><b>Marque o que vocês usaram:</b></p>
+<div id="ck"></div>
+<button id="ver" class="btn block" style="margin-top:12px">Ver um exemplo</button>
+<div id="ex" hidden><div class="card" style="border-color:var(--ok)"><b>Um exemplo aceitável</b><p id="exp" style="margin:6px 0"></p><p class="mut" id="dica"></p></div></div>
+</main>
+<script type="module">
+import { $, header, esc } from './js/common.js';
+import { MINI, RECEITA } from './js/data2.js';
+header('Mini-exercício', { precisaIdentificar:false });
+$('#fraco').textContent=MINI.fraco;
+$('#ata').innerHTML=MINI.ata.map((l,i)=>i===0?`<b>${esc(l)}</b>`:`<p style="margin:6px 0">${esc(l)}</p>`).join('');
+$('#ck').innerHTML=RECEITA.map(([n,t])=>`<label class="opcao"><input type="checkbox"><span><b>${n}. ${esc(t)}</b></span></label>`).join('');
+$('#ver').onclick=()=>{ $('#ex').hidden=false; $('#exp').textContent=MINI.exemplo; $('#dica').textContent=MINI.dica; $('#ver').hidden=true; };
+</script></body></html>

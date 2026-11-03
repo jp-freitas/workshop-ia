@@ -14,6 +14,10 @@
     <div class="grid g3" id="qs" style="margin-top:10px"></div><button id="qx" class="btn ghost block" style="margin-top:8px">Fechar afirmação</button><p id="tst" class="mut"></p></div>
   <h2>Pontos do facilitador</h2>
   <div class="card"><p class="mut">A2 (0–6), A4 rodada 1 (0–12) e pitch (4 critérios, 0–2 cada). O resto vem das duplas.</p><div style="overflow-x:auto"><table id="pts"></table></div></div>
+  <h2>Ordem do pitch</h2>
+  <div class="card"><button id="sort" class="btn sec block">Sortear ordem dos pitches</button><p id="ord" class="mut"></p></div>
+  <h2>Feedback</h2>
+  <div class="card"><div id="fb" class="mut">Sem respostas ainda.</div></div>
   <h2>Fichas de projeto</h2><div id="fichas"></div>
   <h2>Zona de risco</h2>
   <div class="card"><button id="reset" class="btn rd block">Apagar todos os dados desta sessão</button></div>
@@ -53,6 +57,11 @@ function iniciar(){
         if(rb.every(x=>x!=='')){ await dbSet(`rubrica/${g}`,rb.map(x=>Math.min(2,+x))); await dbSet(`scores/${g}/pitch/fac`,rb.reduce((s,x)=>s+Math.min(2,+x),0)); }
         toast('Grupo '+g+' salvo'); }; }); }
   dbOn('projetos',p=>{ p=p||{}; $('#fichas').innerHTML=Object.keys(p).sort((a,b)=>a-b).map(g=>{ const f=p[g]; return `<details class="card"><summary><b>Grupo ${g}</b> · Caso ${esc(f.caso||'?')}</summary>${[['tarefa','Tarefa'],['prompt','Prompt final'],['resultado','Resultado'],['dados','Dados e semáforo'],['verificacao','Verificação'],['responsabilidade','Responsabilidade humana']].map(([k,l])=>`<p><b>${l}:</b><br>${esc(f[k]||'—').replace(/\n/g,'<br>')}</p>`).join('')}</details>`; }).join('')||'<p class="mut">Nenhuma ficha ainda.</p>'; });
+  dbOn('estado/ordem',o=>{ $('#ord').textContent=Array.isArray(o)&&o.length?'Ordem: '+o.map((g,i)=>`${i+1}º Grupo ${g}`).join(' · '):'Ainda não sorteada.'; });
+  $('#sort').onclick=()=>{ const a=Array.from({length:n},(_,i)=>i+1); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } dbSet('estado/ordem',a); toast('Ordem sorteada'); };
+  dbOn('feedback',f=>{ f=Object.values(f||{}); if(!f.length) return; const med=[0,1,2,3,4].map(i=>(f.reduce((s,x)=>s+(+(x.notas||[])[i]||0),0)/f.length).toFixed(1));
+    const abertas=(k,t)=>{ const l=f.map(x=>x[k]).filter(Boolean); return l.length?`<details><summary><b>${t}</b> (${l.length})</summary>${l.map(x=>`<p>• ${esc(x)}</p>`).join('')}</details>`:''; };
+    $('#fb').innerHTML=`<p><b>${f.length} respostas.</b> Médias (1 a 5): ritmo ${med[0]} · atividades ${med[1]} · aplicar ${med[2]} · duração ${med[3]} · recomendaria ${med[4]}</p>`+abertas('melhor','O que mais ajudou')+abertas('mudaria','O que mudaria')+abertas('semana','Esta semana eu vou…'); });
   $('#reset').onclick=async()=>{ if(confirm('Apagar TODOS os dados da sessão '+SESSAO+'?')){ await dbRemove(''); toast('Sessão apagada'); } };
 }
 </script></body></html>

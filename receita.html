@@ -1,0 +1,16 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Receita do prompt · IA na Prática</title><link rel="stylesheet" href="css/style.css"></head><body>
+<main>
+<h1>A receita dos 5 ingredientes</h1>
+<div id="r"></div>
+<h2>Como melhorar o resultado</h2><ol id="m" style="padding-left:22px"></ol>
+<div class="card" style="border-color:var(--yl)"><b>Antes de colar qualquer coisa</b><p style="margin:4px 0 0">Há dado pessoal, sensível ou sigiloso? A ferramenta é aprovada? Dá para anonimizar?</p></div>
+<div class="card" style="border-color:var(--ok)"><b>Depois de receber a resposta</b><p style="margin:4px 0 0">Confira fatos, contas e fontes. <b>A responsabilidade é sempre sua.</b></p></div>
+<p class="mut" style="text-align:center">Dica: salve esta página nos favoritos ou tire um print para consultar depois.</p>
+</main>
+<script type="module">
+import { $, header, esc } from './js/common.js';
+import { RECEITA, MELHORAR } from './js/data2.js';
+header('Receita do prompt', { precisaIdentificar:false });
+$('#r').innerHTML=RECEITA.map(([n,t,p,m])=>`<div class="card"><b style="color:var(--or)">${n}. ${esc(t)}</b> <span class="mut">${esc(p)}</span><p style="margin:6px 0 0"><i>${esc(m)}</i></p></div>`).join('');
+$('#m').innerHTML=MELHORAR.map(([a,b])=>`<li style="margin:6px 0"><b>${esc(a)}</b> ${esc(b)}</li>`).join('');
+</script></body></html>

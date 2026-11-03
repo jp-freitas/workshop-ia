@@ -9,7 +9,7 @@
 <script type="module">
 import { $, header, esc } from './js/common.js';
 header('QR codes', { precisaIdentificar:false });
-const itens=[['index.html','Entrada (escolher grupo e dupla)'],['a1.html','Atividade 1 · IA ou não IA?'],['a3.html','Atividade 3 · Caça às alucinações'],['a4.html','Atividade 4 · Rodada 2'],['pratica.html','Prática guiada'],['projeto.html','Mini projeto · Ficha'],['pitch.html','Cronômetro do pitch'],['termometro.html','Termômetro'],['voto.html','Votação'],['telao.html','Telão (para o facilitador)']];
+const itens=[['index.html','Entrada (escolher grupo e dupla)'],['a1.html','Atividade 1 · IA ou não IA?'],['a3.html','Atividade 3 · Caça às alucinações'],['a4.html','Atividade 4 · Rodada 2'],['receita.html','Receita do prompt'],['mini.html','Mini-exercício · Arrume o prompt'],['pratica.html','Prática guiada'],['caso.html','Mini projeto · Caso e papéis'],['projeto.html','Mini projeto · Ficha'],['pitch.html','Cronômetro do pitch'],['termometro.html','Termômetro'],['voto.html','Votação'],['feedback.html','Feedback'],['glossario.html','Glossário e referências'],['telao.html','Telão (para o facilitador)']];
 $('#base').value=location.href.replace(/[^/]*$/,'').replace(/\?.*$/,'');
 function draw(){ let b=$('#base').value.trim(); if(!b.endsWith('/')) b+='/'; const s=$('#ses').value.trim();
   $('#lista').innerHTML=itens.map(([f,t],i)=>`<div class="q"><div class="im" id="q${i}"></div><div><h2 style="margin:0">${esc(t)}</h2><small>${esc(b+f+(s?'?s='+encodeURIComponent(s):''))}</small></div></div>`).join('');

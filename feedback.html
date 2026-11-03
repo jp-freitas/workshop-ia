@@ -1,0 +1,33 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Feedback · IA na Prática</title><link rel="stylesheet" href="css/style.css"></head><body>
+<main>
+<h1>O que você achou?</h1>
+<p class="mut">Nota de 1 a 5, sendo 5 "concordo totalmente". É anônimo.</p>
+<div id="esc"></div>
+<label>O que mais me ajudou</label><textarea id="a1" style="min-height:90px"></textarea>
+<label>O que eu mudaria</label><textarea id="a2" style="min-height:90px"></textarea>
+<label>Esta semana eu vou…</label><textarea id="a3" style="min-height:90px"></textarea>
+<button id="env" class="btn block" style="margin-top:14px">Enviar</button>
+<p id="st" class="mut" style="text-align:center"></p>
+<h2>Para levar</h2>
+<ol id="msg" style="padding-left:22px"></ol>
+</main>
+<script type="module">
+import { $, $$, header, esc, deviceId, toast, me } from './js/common.js';
+import { dbSet, dbOn } from './js/db.js';
+import { FEEDBACK_ESCALA, MENSAGENS } from './js/data2.js';
+header('Feedback', { precisaIdentificar:false });
+const nota = Array(FEEDBACK_ESCALA.length).fill(0);
+$('#esc').innerHTML = FEEDBACK_ESCALA.map((t,i)=>`<div class="card"><b>${i+1}. ${esc(t)}</b><div class="vgrid" style="grid-template-columns:repeat(5,1fr);margin-top:8px">${[1,2,3,4,5].map(n=>`<button data-i="${i}" data-n="${n}">${n}</button>`).join('')}</div></div>`).join('');
+function draw(){ $$('#esc button').forEach(b=>b.classList.toggle('sel', nota[+b.dataset.i]===+b.dataset.n)); }
+$$('#esc button').forEach(b=>b.onclick=()=>{ nota[+b.dataset.i]=+b.dataset.n; draw(); });
+$('#msg').innerHTML = MENSAGENS.map(t=>`<li style="margin:6px 0">${esc(t)}</li>`).join('');
+const dev = deviceId();
+dbOn('feedback/'+dev, v => { if(!v || $('#env').dataset.lido) return; $('#env').dataset.lido='1';
+  (v.notas||[]).forEach((n,i)=>nota[i]=+n||0); $('#a1').value=v.melhor||''; $('#a2').value=v.mudaria||''; $('#a3').value=v.semana||'';
+  $('#st').textContent='Você já enviou. Pode ajustar e enviar de novo.'; draw(); });
+$('#env').onclick = async () => {
+  if (nota.some(n=>!n)) { toast('Responda as 5 notas.'); return; }
+  const m = me();
+  await dbSet('feedback/'+dev, { notas:nota, melhor:$('#a1').value.trim(), mudaria:$('#a2').value.trim(), semana:$('#a3').value.trim(), em:Date.now() });
+  $('#st').textContent='Obrigado! Feedback enviado.'; toast('Feedback enviado'); };
+</script></body></html>

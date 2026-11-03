@@ -2,6 +2,7 @@
 <main>
 <h1>Mini projeto · Ficha de projeto</h1>
 <p class="mut">Uma pessoa por grupo preenche (o Redator). Os campos são salvos sozinhos e aparecem no painel do facilitador.</p>
+<a class="btn sec block" href="caso.html" style="margin-bottom:8px">Ver o caso do meu grupo</a>
 <div class="card"><b>Papéis do grupo</b>
   <div class="grid g2" style="margin-top:8px" id="papeis"></div></div>
 <label>Caso nº</label><select id="caso"><option value="">Escolha…</option>
@@ -14,6 +15,7 @@
 import { $, $$, header, esc, toast } from './js/common.js';
 import { dbSet, dbOn } from './js/db.js';
 import { PROJETO_CAMPOS, PAPEIS } from './js/data.js';
+import { casoDoGrupo } from './js/data2.js';
 const m = header('Mini projeto');
 const base = `projetos/${m.g}`;
 $('#papeis').innerHTML = PAPEIS.map((p,i)=>`<div><label style="margin:0;font-size:14px">${p}</label><input type="text" data-p="${i}" placeholder="Nome"></div>`).join('');
@@ -21,7 +23,7 @@ $('#campos').innerHTML = PROJETO_CAMPOS.map(([k,l,r])=>`<label>${esc(l)}</label>
 let first = true, t;
 dbOn(base, v => { if(!first) return; first=false; v=v||{};
   $$('#campos [data-k]').forEach(e=>e.value=v[e.dataset.k]||'');
-  $$('#papeis [data-p]').forEach(e=>e.value=(v.papeis||{})[e.dataset.p]||''); $('#caso').value=v.caso||''; });
+  $$('#papeis [data-p]').forEach(e=>e.value=(v.papeis||{})[e.dataset.p]||''); $('#caso').value=v.caso||''; if(!v.caso) $('#caso').selectedIndex=casoDoGrupo(m.g); });
 function salvar(){ $('#st').textContent='Salvando…'; clearTimeout(t); t=setTimeout(async()=>{
   const o={caso:$('#caso').value, papeis:Object.fromEntries($$('#papeis [data-p]').map(e=>[e.dataset.p,e.value]))};
   $$('#campos [data-k]').forEach(e=>o[e.dataset.k]=e.value); o.em=Date.now();
